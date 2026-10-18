@@ -34,6 +34,17 @@ dependencies {
 	include "dev.arbjerg:lava-common:2.2.7"
 	include "org.mozilla:rhino-engine:1.7.14"
 	include "org.mozilla:rhino:1.7.14"
+	include "com.fasterxml.jackson.core:jackson-databind:2.15.2"
+	include "com.fasterxml.jackson.core:jackson-core:2.15.2"
+	include "com.fasterxml.jackson.core:jackson-annotations:2.15.2"
+	include "org.jsoup:jsoup:1.16.1"
+	include "net.iharder:base64:2.3.9"
+	include "org.json:json:20240303"
+	include "org.apache.httpcomponents:httpclient:4.5.14"
+	include "org.apache.httpcomponents:httpcore:4.4.16"
+	include "commons-logging:commons-logging:1.2"
+	include "commons-codec:commons-codec:1.16.0"
+	include "commons-io:commons-io:2.15.1"
 }
 
 processResources {

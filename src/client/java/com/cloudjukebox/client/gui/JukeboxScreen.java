@@ -122,7 +122,12 @@ public class JukeboxScreen extends Screen {
             if (this.minecraft != null) {
                 this.minecraft.execute(() -> {
                     searchButton.active = true;
-                    statusMessage = "Search error: " + ex.getMessage();
+                    Throwable cause = ex;
+                    while (cause.getCause() != null) {
+                        cause = cause.getCause();
+                    }
+                    String msg = cause.getMessage() != null ? cause.getMessage() : cause.getClass().getSimpleName();
+                    statusMessage = "Search error: " + msg;
                     statusColor = 0xFF5555;
                 });
             }
