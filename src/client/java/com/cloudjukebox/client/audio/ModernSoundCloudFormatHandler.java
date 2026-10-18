@@ -11,36 +11,40 @@ import java.util.List;
 public class ModernSoundCloudFormatHandler implements SoundCloudFormatHandler {
     @Override
     public SoundCloudTrackFormat chooseBestFormat(List<SoundCloudTrackFormat> formats) {
-        // 1. Prefer Opus HLS
+        // 1. Prefer progressive direct MP3 stream (unfragmented, reliable)
         for (SoundCloudTrackFormat format : formats) {
             String proto = format.getProtocol();
             String mime = format.getMimeType();
-            if ("hls".equals(proto) && (mime.contains("ogg") || mime.contains("opus"))) {
+            String url = format.getLookupUrl();
+            if (!url.contains("encrypted") && "progressive".equals(proto) && (mime.contains("mpeg") || mime.contains("mp3"))) {
                 return format;
             }
         }
 
-        // 2. Match MP3 HLS (SoundCloud modern mime_type is "audio/mpegurl" or "audio/mpeg")
+        // 2. Prefer Opus HLS
         for (SoundCloudTrackFormat format : formats) {
             String proto = format.getProtocol();
             String mime = format.getMimeType();
-            if ("hls".equals(proto) && (mime.contains("mpeg") || mime.contains("mp3") || mime.contains("mpegurl"))) {
+            String url = format.getLookupUrl();
+            if (!url.contains("encrypted") && "hls".equals(proto) && (mime.contains("ogg") || mime.contains("opus"))) {
                 return format;
             }
         }
 
-        // 3. Progressive direct MP3 stream
+        // 3. Match unencrypted MP3 HLS
         for (SoundCloudTrackFormat format : formats) {
             String proto = format.getProtocol();
             String mime = format.getMimeType();
-            if ("progressive".equals(proto) && (mime.contains("mpeg") || mime.contains("mp3"))) {
+            String url = format.getLookupUrl();
+            if (!url.contains("encrypted") && "hls".equals(proto) && (mime.contains("mpeg") || mime.contains("mp3"))) {
                 return format;
             }
         }
 
-        // 4. Any HLS stream as fallback
+        // 4. Any unencrypted stream
         for (SoundCloudTrackFormat format : formats) {
-            if ("hls".equals(format.getProtocol())) {
+            String url = format.getLookupUrl();
+            if (!url.contains("encrypted")) {
                 return format;
             }
         }

@@ -35,6 +35,16 @@ public class ServerJukeboxManager {
     private final Map<JukeboxKey, ActiveJukebox> activeJukeboxes = new ConcurrentHashMap<>();
 
     public void playTrack(ServerLevel level, BlockPos pos, String trackUrl, String title, String artist, long durationMs) {
+        // Stop all other currently active jukeboxes on this server so only the latest song plays
+        for (Map.Entry<JukeboxKey, ActiveJukebox> entry : activeJukeboxes.entrySet()) {
+            BlockPos oldPos = entry.getKey().pos();
+            if (!oldPos.equals(pos)) {
+                ActiveJukebox stopped = new ActiveJukebox(oldPos, "", "", "", 0, 0, false);
+                broadcastSync(level, oldPos, stopped);
+            }
+        }
+        activeJukeboxes.clear();
+
         JukeboxKey key = new JukeboxKey(level.dimension(), pos);
         ActiveJukebox active = new ActiveJukebox(
                 pos, trackUrl, title, artist, durationMs, System.currentTimeMillis(), true
@@ -46,13 +56,16 @@ public class ServerJukeboxManager {
 
     public void stopTrack(ServerLevel level, BlockPos pos) {
         JukeboxKey key = new JukeboxKey(level.dimension(), pos);
-        ActiveJukebox active = activeJukeboxes.remove(key);
-        if (active != null) {
-            ActiveJukebox stopped = new ActiveJukebox(
-                    pos, "", "", "", 0, 0, false
-            );
-            broadcastSync(level, pos, stopped);
-        }
+        activeJukeboxes.remove(key);
+
+        ActiveJukebox stopped = new ActiveJukebox(
+                pos, "", "", "", 0, 0, false
+        );
+        broadcastSync(level, pos, stopped);
+    }
+
+    public java.util.Set<JukeboxKey> getActiveKeys() {
+        return activeJukeboxes.keySet();
     }
 
     public void openGuiForPlayer(ServerPlayer player, BlockPos pos) {
@@ -90,11 +103,10 @@ public class ServerJukeboxManager {
                 active.durationMs(), active.startEpochMs(), active.isPlaying()
         );
 
-        double radiusSquared = 64.0 * 64.0;
+        // Broadcast to all players in the level so old songs stop globally
+        // and new songs are heard with client-side 3D spatial attenuation
         for (ServerPlayer player : level.players()) {
-            if (player.blockPosition().distSqr(pos) <= radiusSquared) {
-                ServerPlayNetworking.send(player, payload);
-            }
+            ServerPlayNetworking.send(player, payload);
         }
     }
 }

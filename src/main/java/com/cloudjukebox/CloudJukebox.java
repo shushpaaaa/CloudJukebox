@@ -5,6 +5,8 @@ import com.cloudjukebox.network.PlayTrackPayload;
 import com.cloudjukebox.network.StopTrackPayload;
 import com.cloudjukebox.network.SyncJukeboxPayload;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -44,13 +46,16 @@ public class CloudJukebox implements ModInitializer {
             ServerLevel level = player.serverLevel();
             BlockPos pos = payload.pos();
 
-            // Security check: ensure player is within interaction distance of the jukebox
-            if (player.blockPosition().distSqr(pos) <= 100) {
+            // Distance check: ensure player is within reasonable interaction distance
+            if (player.blockPosition().distSqr(pos) <= 256) {
                 context.server().execute(() -> {
+                    LOGGER.info("Server: playing track '{}' by '{}' at Jukebox {}", payload.title(), payload.artist(), pos);
                     ServerJukeboxManager.INSTANCE.playTrack(
                             level, pos, payload.trackUrl(), payload.title(), payload.artist(), payload.durationMs()
                     );
                 });
+            } else {
+                LOGGER.warn("Server: player {} too far from Jukebox at {} (distSqr={})", player.getName().getString(), pos, player.blockPosition().distSqr(pos));
             }
         });
 
@@ -59,8 +64,9 @@ public class CloudJukebox implements ModInitializer {
             ServerLevel level = player.serverLevel();
             BlockPos pos = payload.pos();
 
-            if (player.blockPosition().distSqr(pos) <= 100) {
+            if (player.blockPosition().distSqr(pos) <= 256) {
                 context.server().execute(() -> {
+                    LOGGER.info("Server: stopping track at Jukebox {}", pos);
                     ServerJukeboxManager.INSTANCE.stopTrack(level, pos);
                 });
             }
@@ -88,6 +94,28 @@ public class CloudJukebox implements ModInitializer {
             }
 
             return InteractionResult.PASS;
+        });
+
+        // Detect when a player breaks a Jukebox block
+        PlayerBlockBreakEvents.AFTER.register((level, player, pos, state, blockEntity) -> {
+            if (state.is(Blocks.JUKEBOX) && !level.isClientSide() && level instanceof ServerLevel serverLevel) {
+                LOGGER.info("Jukebox at {} was broken by player {}, stopping music", pos, player.getName().getString());
+                ServerJukeboxManager.INSTANCE.stopTrack(serverLevel, pos);
+            }
+        });
+
+        // Periodically verify that active playing jukeboxes still exist in the world
+        ServerTickEvents.END_WORLD_TICK.register(world -> {
+            if (world.getGameTime() % 20 == 0) {
+                for (ServerJukeboxManager.JukeboxKey key : ServerJukeboxManager.INSTANCE.getActiveKeys()) {
+                    if (key.dimension().equals(world.dimension())) {
+                        if (!world.getBlockState(key.pos()).is(Blocks.JUKEBOX)) {
+                            LOGGER.info("Jukebox at {} in {} no longer exists, stopping music", key.pos(), world.dimension().location());
+                            ServerJukeboxManager.INSTANCE.stopTrack(world, key.pos());
+                        }
+                    }
+                }
+            }
         });
 
         LOGGER.info("Cloud Jukebox common initialization complete!");
