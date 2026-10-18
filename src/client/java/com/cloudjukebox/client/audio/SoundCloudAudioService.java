@@ -37,8 +37,13 @@ public class SoundCloudAudioService {
 
     public SoundCloudAudioService() {
         this.playerManager = new DefaultAudioPlayerManager();
-        // Register remote audio sources (SoundCloud, HTTP, etc.)
-        AudioSourceManagers.registerRemoteSources(this.playerManager);
+        com.sedmelluq.discord.lavaplayer.source.soundcloud.SoundCloudAudioSourceManager soundCloudSource =
+                com.sedmelluq.discord.lavaplayer.source.soundcloud.SoundCloudAudioSourceManager.builder()
+                        .withAllowSearch(true)
+                        .withFormatHandler(new ModernSoundCloudFormatHandler())
+                        .build();
+        this.playerManager.registerSourceManager(soundCloudSource);
+        this.playerManager.registerSourceManager(new com.sedmelluq.discord.lavaplayer.source.http.HttpAudioSourceManager());
     }
 
     public AudioPlayerManager getPlayerManager() {
