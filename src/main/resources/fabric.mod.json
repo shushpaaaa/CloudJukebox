@@ -1,0 +1,37 @@
+{
+	"schemaVersion": 1,
+	"id": "cloudjukebox",
+	"version": "${version}",
+	"name": "Cloud Jukebox",
+	"description": "Stream SoundCloud music directly from in-game Jukeboxes with 3D spatial audio and multiplayer sync.",
+	"authors": [
+		"CloudJukebox Team"
+	],
+	"contact": {
+		"homepage": "https://github.com/cloudjukebox/cloudjukebox"
+	},
+	"license": "MIT",
+	"icon": "assets/cloudjukebox/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.cloudjukebox.CloudJukebox"
+		],
+		"client": [
+			"com.cloudjukebox.client.CloudJukeboxClient"
+		]
+	},
+	"mixins": [
+		"cloudjukebox.mixins.json",
+		{
+			"config": "cloudjukebox.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.16.9",
+		"minecraft": "~1.21",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
