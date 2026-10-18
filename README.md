@@ -3,8 +3,15 @@
 # CloudJukebox
 **Search and stream music from SoundCloud directly through Minecraft jukeboxes.**
 
+<br>
+
+<img src="cloud_jukebox_cover.jpg" alt="CloudJukebox" width="750" style="border-radius: 8px;"/>
+
+<br><br>
+
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-brightgreen.svg)](https://minecraft.net/)
 [![Fabric](https://img.shields.io/badge/Modloader-Fabric-blue.svg)](https://fabricmc.net/)
+[![Release](https://img.shields.io/github/v/release/shushpaaaa/CloudJukebox?color=purple)](https://github.com/shushpaaaa/CloudJukebox/releases)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://adoptium.net/)
 
@@ -63,7 +70,7 @@ No web browsers or third-party bots required—simply right-click any jukebox, s
 Clone the repository and build using the Gradle wrapper:
 
 ```bash
-git clone https://github.com/username/CloudJukebox.git
+git clone https://github.com/shushpaaaa/CloudJukebox.git
 cd CloudJukebox
 ./gradlew build
 ```
